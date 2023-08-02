@@ -48,6 +48,9 @@
 #define MATH_INT_MAX    0x7fffffff
 #define MATH_INT_MIN    0x80000000
 
+#define MATH_INT16_MAX  0x7fff
+#define MATH_INT16_MIN  0x8000
+
 #define MATH_DOUBLE_MAX 1.7976931348623158e+308
 #define MATH_FLOAT_MAX  3.402823466e+38F
 
@@ -55,6 +58,7 @@
 #define DOUBLE_EPS      1e-12
 
 #ifdef __cplusplus
+/*
 ////////////////////////////////////////////////////////////////////////////////
 template <typename TREAL>
 struct CMConst
@@ -83,11 +87,38 @@ struct CMConst
     constexpr static const TREAL MATH_PHI         = TREAL(CONST_PHI);
 };
 ////////////////////////////////////////////////////////////////////////////////
-
-/*
+*/
 // For C++ ver. 98
 // Don't know if ever be used.
 ////////////////////////////////////////////////////////////////////////////////
+template <typename TREAL>
+struct CMConst
+{
+    static const TREAL MATH_PI;
+    static const TREAL MATH_2PI;
+    static const TREAL MATH_PI_BY_2;
+    static const TREAL MATH_PI_BY_4;
+    static const TREAL MATH_1_BY_PI;
+    static const TREAL MATH_2_BY_PI;
+    static const TREAL MATH_1_BY_2PI;
+
+    static const TREAL MATH_DEG_IN_RAD;
+    static const TREAL MATH_RAD_IN_DEG;
+
+    static const TREAL MATH_SQRT_2;
+    static const TREAL MATH_1_BY_SQRT_2;
+    static const TREAL MATH_1_BY_SQRT_PI;
+    static const TREAL MATH_SQRT_3;
+
+    static const TREAL MATH_E;
+    static const TREAL MATH_LOG2_E;
+    static const TREAL MATH_LOG10_E;
+    static const TREAL MATH_LN_2;
+    static const TREAL MATH_LN_10;
+    static const TREAL MATH_PHI;
+};
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename TREAL>
 const TREAL CMConst<TREAL>::MATH_PI             = TREAL(CONST_PI);
 ////////////////////////////////////////////////////////////////////////////////
@@ -145,6 +176,8 @@ const TREAL CMConst<TREAL>::MATH_LN_10          = TREAL(CONST_LN_10);
 template <typename TREAL>
 const TREAL CMConst<TREAL>::MATH_PHI            = TREAL(CONST_PHI);
 ////////////////////////////////////////////////////////////////////////////////
-*/
+
 #endif //__cplusplus
 #endif //_MATHLIB_CONSTS_
+
+
