@@ -179,5 +179,3 @@ const TREAL CMConst<TREAL>::MATH_PHI            = TREAL(CONST_PHI);
 
 #endif //__cplusplus
 #endif //_MATHLIB_CONSTS_
-
-
