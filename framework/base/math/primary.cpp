@@ -1,15 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // primary.cpp
 //
-// Math primary functions definition
+// Math primary functions definitions
 ///////////////////////////////////////////////////////////////////////////////
 
-//#include <assert.h>
-#include <math.h>
-#include "mathdefs.h"
-#include "mathconsts.h"
 #include "primary.h"
-#include "intreal.h"
+#include <math.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Bias constant used for fast conversions between int and float. First element
@@ -68,162 +64,161 @@ double mitod(int64t i)
     return di.d - biasdbl.d;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Making float number from three components
-float mmakef(int32t sign, int32t exp, int32t mant)
-{
-    int32t i = (sign << 31) | ((exp & 255) << 23) | (mant & ((1 << 23) - 1));
-    float f = *(float*)&i;
 
-    return f;
+///////////////////////////////////////////////////////////////////////////////
+// Check if value is not a number
+bool misnan(float f)
+{
+    INTFLOAT flt;
+    flt.f = f;
+
+    uint32t exp = flt.bits.exponent;
+    uint32t mant = flt.bits.mantissa;
+
+    return (exp == 255) && (mant != 0);
 }
 ///////////////////////////////////////////////////////////////////////////////
-// Splitting float number to three components
-void msplitf(float f, int32t &sign, int32t &exp, int32t &mant)
+// Check if value is not a number
+bool misnan(double d)
 {
-    int32t i = *(int32t*)&f;
+    INTDOUBLE dbl;
+    dbl.d = d;
 
-    sign = (i >> 31) != 0 ? 1 : 0;
-    exp =  (i >> 23) & 255;
-    mant = i & ((1 << 23) - 1);
-}
+    uint64t exp = dbl.bits.exponent;
+    uint64t mant = dbl.bits.mantissa;
 
-///////////////////////////////////////////////////////////////////////////////
-// Making double number
-double mmaked(int64t sign, int64t exp, int64t mant)
-{
-    int64t i = (sign << 63) | ((exp & 2047) << 52) |
-                                (mant & ((int64t(1) << 52) - 1));
-    double d = *(double*)&i;
-
-    return d;
-}
-///////////////////////////////////////////////////////////////////////////////
-// Splitting double number
-void msplitd(double d, int64t &sign, int64t &exp, int64t &mant)
-{
-    int64t i = *(int64t*)&d;
-
-    sign = (i >> 63) != 0 ? 1 : 0;
-    exp  = (i >> 52) & 2047;
-    mant = i & ((int64t(1) << 52) - 1);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Checking if value is not a number
-int32t misnan(float f)
-{
-    int32t s,e,m;
-    msplitf(f,s,e,m);
-
-    return (e == 255) && (m != 0);
-}
-///////////////////////////////////////////////////////////////////////////////
-// Checking if value is not a number
-int64t misnan(double d)
-{
-    int64t s,e,m;
-    msplitd(d,s,e,m);
-
-    return (e == 2047) && (m != 0);
+    return (exp == 2047) && (mant != 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is signaling NaN
-int32t msnan(float f)
+bool msnan(float f)
 {
-    int32t s,e,m;
-    msplitf(f,s,e,m);
+    INTFLOAT flt;
+    flt.f = f;
 
-    return (e == 255) && (m != 0) && (m >> 22);
+    uint32t exp = flt.bits.exponent;
+    uint32t mant = flt.bits.mantissa;
+
+    return (exp == 255) && (mant != 0) && (mant >> 22);
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is signaling NaN
-int64t msnan(double d)
+bool msnan(double d)
 {
-    int64t s,e,m;
-    msplitd(d,s,e,m);
+    INTDOUBLE dbl;
+    dbl.d = d;
 
-    return (e == 2047) && (m != 0) && (m >> 51);
+    uint64t exp = dbl.bits.exponent;
+    uint64t mant = dbl.bits.mantissa;
+
+    return (exp == 2047) && (mant != 0) && (mant >> 51);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is quiet NaN
-int32t mqnan(float f)
+bool mqnan(float f)
 {
-    int32t s,e,m;
-    msplitf(f,s,e,m);
+    INTFLOAT flt;
+    flt.f = f;
 
-    return (e == 255) && (m != 0) && !(m >> 22);
+    uint32t exp = flt.bits.exponent;
+    uint32t mant = flt.bits.mantissa;
+
+    return (exp == 255) && (mant != 0) && !(mant >> 22);
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is quiet NaN
-int64t mqnan(double d)
+bool mqnan(double d)
 {
-    int64t s,e,m;
-    msplitd(d,s,e,m);
+    INTDOUBLE dbl;
+    dbl.d = d;
 
-    return (e == 2047) && (m != 0) && !(m >> 51);
+    uint64t exp = dbl.bits.exponent;
+    uint64t mant = dbl.bits.mantissa;
+
+    return (exp == 2047) && (mant != 0) && !(mant >> 51LL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is infinity
-int32t misinf(float f)
+bool misinf(float f)
 {
-    int32t s,e,m;
-    msplitf(f,s,e,m);
+    INTFLOAT flt;
+    flt.f = f;
 
-    return (e == 255) && (m == 0);
+    uint32t exp = flt.bits.exponent;
+    uint32t mant = flt.bits.mantissa;
+
+    return (exp == 255) && (mant == 0);
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is infinity
-int64t misinf(double d)
+bool misinf(double d)
 {
-    int64t s,e,m;
-    msplitd(d,s,e,m);
+    INTDOUBLE dbl;
+    dbl.d = d;
 
-    return (e == 2047) && (m == 0);
+    uint64t exp = dbl.bits.exponent;
+    uint64t mant = dbl.bits.mantissa;
+
+    return (exp == 2047) && (mant == 0);
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is positive infinity
-int32t mpinf(float f)
+bool mpinf(float f)
 {
-    int32t s,e,m;
-    msplitf(f,s,e,m);
+    INTFLOAT flt;
+    flt.f = f;
 
-    return (s == 0) && (e == 255) && (m == 0);
+    uint32t sign = flt.bits.sign;
+    uint32t exp = flt.bits.exponent;
+    uint32t mant = flt.bits.mantissa;
+
+    return (sign == 0) && (exp == 255) && (mant == 0);
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is positive infinity
-int64t mpinf(double d)
+bool mpinf(double d)
 {
-    int64t s,e,m;
-    msplitd(d,s,e,m);
+    INTDOUBLE dbl;
+    dbl.d = d;
 
-    return (s == 0) && (e == 2047) && (m == 0);
+    uint64t sign = dbl.bits.sign;
+    uint64t exp = dbl.bits.exponent;
+    uint64t mant = dbl.bits.mantissa;
+
+    return (sign == 0) && (exp == 2047) && (mant == 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is negative infinity
-int32t mninf(float f)
+bool mninf(float f)
 {
-    int32t s,e,m;
-    msplitf(f,s,e,m);
+    INTFLOAT flt;
+    flt.f = f;
 
-    return (s > 0) && (e == 255) && (m == 0);
+    uint32t sign = flt.bits.sign;
+    uint32t exp = flt.bits.exponent;
+    uint32t mant = flt.bits.mantissa;
+
+    return (sign > 0) && (exp == 255) && (mant == 0);
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Check if value is negative infinity
-int64t mninf(double d)
+bool mninf(double d)
 {
-    int64t s,e,m;
-    msplitd(d,s,e,m);
+    INTDOUBLE dbl;
+    dbl.d = d;
 
-    return (s > 0) && (e == 2047) && (m == 0);
+    uint64t sign = dbl.bits.sign;
+    uint64t exp = dbl.bits.exponent;
+    uint64t mant = dbl.bits.mantissa;
+
+    return (sign > 0) && (exp == 2047) && (mant == 0);
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Lomont compare function
@@ -246,114 +241,133 @@ bool mlcmp(float af, float bf, int32t max_diff)
     return (v1 | v2) >= 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the floor of a value x
-float   mfloor(float x)
-{
-    return floorf(x);
-}
-///////////////////////////////////////////////////////////////////////////////
-double  mfloor(double x)
-{
-    return floor(x);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the ceiling of a value x
-float   mceil(float x)
-{
-    return ceilf(x);
-}
-///////////////////////////////////////////////////////////////////////////////
-double  mceil(double x)
-{
-    return ceil(x);
-}
-
-
-#ifdef MATH_LONG_DOUBLE_INST
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the floor of a value x
-long double mfloor(long double x)
-{
-    return floor(x);
-}
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the ceiling of a value x
-long double mceil(long double x)
-{
-    return ceilf(x);
-}
-#endif //MATH_LONG_DOUBLE_INST
-
-#ifdef MATH_FIXED_INST
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the floor of a value x
-tfixed32 mfloor(tfixed32 x)
-{
-    float f_val = (float)x;
-    f_val = floorf(f_val);
-    tfixed32 res_fixed(f_val);
-
-    return res_fixed;
-}
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the ceiling of a value x
-tfixed32   mceil(tfixed32 x)
-{
-    float f_val = (float)x;
-    f_val = mceilf(f_val);
-    tfixed32 res_fixed(f_val);
-
-    return res_fixed;
-}
-#endif //MATH_FIXED_INST
-
-#ifdef MATH_FIXED64_INST
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the floor of a value x
-tfixed64   mfloor(tfixed64 x)
-{
-    double f_val = (double)x;
-    f_val = floor(f_val);
-    tfixed64 res_fixed(f_val);
-
-    return res_fixed;
-}
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the ceiling of a value x
-tfixed64   mceil(tfixed64 x)
-{
-    double f_val = (double)x;
-    f_val = floor(f_val);
-    tfixed64 res_fixed(f_val);
-
-    return res_fixed;
-}
-#endif //MATH_FIXED64_INST
 
 #ifdef MATH_HALF_INST
-///////////////////////////////////////////////////////////////////////////////
-// Calculates the floor of a value x
-thalf   mfloor(thalf h)
-{
-    float f_val = (float)h;
-    f_val = floorf(f_val);
-    thalf res_half(f_val);
 
-    return res_half;
+extern uint16t m_float_to_half_amd(float x);
+extern float m_half_to_float_amd(uint16t x);
+
+///////////////////////////////////////////////////////////////////////////////
+// Converting 32-bit integer to half type
+thalf   mitoh(int32t x)
+{
+    float f_val = mitof(x);
+
+    thalf out;
+    uint16t * half_ptr = (uint16t *) out;
+    * half_ptr = m_float_to_half_amd(f_val);
+
+    return out;
 }
 ///////////////////////////////////////////////////////////////////////////////
-// Calculates the ceiling of a value x
-thalf   mceil(thalf h)
+// Converting half to 32-bit integer
+int32t  mhtoi(thalf x)
 {
-    float f_val = (float)h;
-    f_val = ceilf(f_val);
-    thalf res_half(f_val);
+    uint16t * half_ptr = (uint16t *) x;
+    float f_val = m_half_to_float_amd( * half_ptr );
+    int32t i_val = mftoi(f_val);
 
-    return res_half;
+    return i_val;
 }
-#endif //MATH_HALF_INST
+
+///////////////////////////////////////////////////////////////////////////////
+// Converting float to half type
+thalf   mftoh(float x)
+{
+    thalf out;
+    uint16t * half_ptr = (uint16t *) out;
+    * half_ptr = m_float_to_half_amd(x);
+
+    return out;
+}
+///////////////////////////////////////////////////////////////////////////////
+// Converting half to float
+float   mhtof(thalf x)
+{
+    uint16t * half_ptr = (uint16t *) x;
+    float out = m_half_to_float_amd( * half_ptr );
+
+    return out;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Checking if value is not a number
+bool misnan(thalf & x)
+{
+    INTHALF hlf;
+    hlf.h = * (uint16t *) x;
+
+    uint16t exp = hlf.bits.exponent;
+    uint16t mant = hlf.bits.mantissa;
+
+    return (exp == 255) && (mant != 0);
+
+}
+///////////////////////////////////////////////////////////////////////////////
+// Check if value is signaling NaN
+bool msnan(thalf & x)
+{
+    INTHALF hlf;
+    hlf.h = * (uint16t *) x;
+
+    uint16t exp = hlf.bits.exponent;
+    uint16t mant = hlf.bits.mantissa;
+
+    return (exp == 255) && (mant != 0) && !(mant >> 9);
+}
+///////////////////////////////////////////////////////////////////////////////
+// Check if value is quiet NaN
+bool mqnan(thalf & x)
+{
+    INTHALF hlf;
+    hlf.h = * (uint16t *) x;
+
+    uint16t exp = hlf.bits.exponent;
+    uint16t mant = hlf.bits.mantissa;
+
+    return (exp == 255) && (mant != 0) && (mant >> 9);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Check if value is infinity
+bool misinf(thalf & x)
+{
+    INTHALF hlf;
+    hlf.h = * (uint16t *) x;
+
+    uint16t exp = hlf.bits.exponent;
+    uint16t mant = hlf.bits.mantissa;
+
+    return (exp == 31) && (mant == 0);
+}
+///////////////////////////////////////////////////////////////////////////////
+// Check if value is positive infinity
+bool mpinf(thalf & x)
+{
+    INTHALF hlf;
+    hlf.h = * (uint16t *) x;
+
+    uint16t sign = hlf.bits.sign;
+    uint16t exp = hlf.bits.exponent;
+    uint16t mant = hlf.bits.mantissa;
+
+    return (sign == 0) && (exp == 31) && (mant == 0);
+}
+///////////////////////////////////////////////////////////////////////////////
+// Check if value is negative infinity
+bool mninf(thalf & x)
+{
+    INTHALF hlf;
+    hlf.h = * (uint16t *) x;
+
+    uint16t sign = hlf.bits.sign;
+    uint16t exp = hlf.bits.exponent;
+    uint16t mant = hlf.bits.mantissa;
+
+    return (sign == 1) && (exp == 31) && (mant == 0);
+}
+
+#endif // MATH_HALF_INST
 
 
 
@@ -363,58 +377,22 @@ thalf   mceil(thalf h)
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-// Pack values from [-1,1] to [0,1]
-template <typename T>
-void mpack01(marray2<T> & out, const marray2<T> & in)
+// Calculates the floor of a value x
+template <typename TReal>
+TReal mfloor(TReal x)
 {
-    out.elem1 = mpack01(in.elem1);
-    out.elem2 = mpack01(in.elem2);
-}
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-void mpack01(marray3<T> & out, const marray3<T> & in)
-{
-    out.elem1 = mpack01(in.elem1);
-    out.elem2 = mpack01(in.elem2);
-    out.elem3 = mpack01(in.elem3);
-}
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-void mpack01(marray4<T> & out, const marray4<T> & in)
-{
-    out.elem1 = mpack01(in.elem1);
-    out.elem2 = mpack01(in.elem2);
-    out.elem3 = mpack01(in.elem3);
-    out.elem4 = mpack01(in.elem4);
+    return floor(x);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Unpack values from [0,1] to [-1,1]
-template <typename T>
-void munpack01(marray2<T> & out, const marray2<T> & in)
+// Calculates the ceiling of a value x
+template <typename TReal>
+TReal mceil(TReal x)
 {
-    out.elem1 = munpack01( in.elem1 );
-    out.elem2 = munpack01( in.elem2 );
-}
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-void munpack01(marray3<T> & out, const marray3<T> & in)
-{
-    out.elem1 = munpack01( in.elem1 );
-    out.elem2 = munpack01( in.elem2 );
-    out.elem3 = munpack01( in.elem3 );
-}
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-void munpack01(marray4<T> & out, const marray4<T> & in)
-{
-    out.elem1 = munpack01( in.elem1 );
-    out.elem2 = munpack01( in.elem2 );
-    out.elem3 = munpack01( in.elem3 );
-    out.elem4 = munpack01( in.elem4 );
+    return mceil(x);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Finds fraction part of number x
 template <typename TReal>
 TReal mfrc(TReal x)
@@ -428,17 +406,244 @@ TReal mfrc(TReal x)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Normalizing angle to [-PI,PI]
+// Normalizing Angle To [-PI,PI]
 template <typename TReal>
 TReal mnorma(TReal rad)
 {
     TReal alpha = rad + CMConst<TReal>::MATH_PI;
     alpha = alpha * CMConst<TReal>::MATH_1_BY_2PI;
     alpha = mfrc(alpha);
+    TReal norm_angle = alpha * CMConst<TReal>::MATH_2PI;
+    norm_angle = norm_angle - CMConst<TReal>::MATH_PI;
 
-    return alpha * CMConst<TReal>::MATH_2PI - CMConst<TReal>::MATH_PI;
+    return norm_angle;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Inverting value sign
+template <typename TReal>
+TReal minvert(TReal x)
+{
+    return -x;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Reverse value y = 1/x
+template <typename TReal>
+TReal mreverse(TReal x)
+{
+    TReal val_one(1.f);
+    return val_one/x;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Template functions specialization
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef MATH_FIXED_INST
+////////////////////////////////////////////////////////////////////////////////
+// Calculates the floor of a value x
+tfixed32 mfloor(tfixed32 x)
+{
+    float flt = (float) x;
+    flt = floor(flt);
+    tfixed32 fx(flt);
+
+    return fx;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Calculates the ceiling of a value x
+tfixed32 mceil(tfixed32 x)
+{
+
+    float flt = (float) x;
+    flt = floor(flt);
+    tfixed32 fx(flt);
+
+    return fx;
+}
+#endif //MATH_FIXED_INST
+////////////////////////////////////////////////////////////////////////////////
+
+
+#ifdef MATH_FIXED64_INST
+////////////////////////////////////////////////////////////////////////////////
+// Calculates the floor of a value x
+tfixed64 mfloor(tfixed64 x)
+{
+    double dbl = (double) x;
+    dbl = floor(dbl);
+    tfixed64 fx(dbl);
+
+    return fx;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Calculates the ceiling of a value x
+tfixed64 mceil(tfixed64 x)
+{
+    float flt = (float) x;
+    flt = floor(flt);
+    tfixed32 fx(flt);
+
+    return fx;
+}
+#endif //MATH_FIXED64_INST
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef MATH_HALF_INST
+////////////////////////////////////////////////////////////////////////////////
+// Calculates the floor of a value x
+thalf mfloor(thalf x)
+{
+    float flt = (float) x;
+    flt = floor(flt);
+    thalf hf(flt);
+
+    return hf;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Calculates the ceiling of a value x
+thalf mceil(thalf x)
+{
+    float flt = (float) x;
+    flt = floor(flt);
+    thalf hf(flt);
+
+    return hf;
+}
+#endif //MATH_HALF_INST
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Template functions instantiation
+////////////////////////////////////////////////////////////////////////////////
+
+
+#ifdef MATH_FLOAT_INST
+////////////////////////////////////////////////////////////////////////////////
+// Float type functions instantiation
+
+// Calculates the floor of a value x
+template float mfloor(float x);
+// Calculates the ceiling of a value x
+template float mceil(float x);
+// Finds fraction part of number x
+template float mfrc(float x);
+// Normalizing angle to [-PI,PI]
+template float mnorma(float rad);
+// Inverting value sign
+template float minvert(float x);
+// Reverse value
+template float mreverse(float x);
+#endif //MATH_FLOAT_INST
+
+
+#ifdef MATH_DOUBLE_INST
+////////////////////////////////////////////////////////////////////////////////
+// Double type functions instantiation
+
+// Calculates the floor of a value x
+template double mfloor(double x);
+// Calculates the ceiling of a value x
+template double mceil(double x);
+// Finds fraction part of number x
+template double mfrc(double x);
+// Normalizing angle to [-PI,PI]
+template double mnorma(double rad);
+// Inverting value sign
+template double minvert(double x);
+// Reverse value
+template double mreverse(double x);
+#endif //MATH_DOUBLE_INST
+
+
+#ifdef MATH_LONG_DOUBLE_INST
+////////////////////////////////////////////////////////////////////////////////
+// Long double type functions instantiation
+
+// Calculates the floor of a value x
+template long double mfloor(long double x);
+// Calculates the ceiling of a value x
+template long double mceil(long double x);
+// Finds fraction part of number x
+template long double mfrc(long double x);
+// Normalizing angle to [-PI,PI]
+template long double mnorma(long double rad);
+// Inverting value sign
+template long double minvert(long double x);
+// Reverse value
+template long double mreverse(long double x);
+#endif //MATH_LONG_DOUBLE_INST
+
+
+#ifdef MATH_FIXED_INST
+////////////////////////////////////////////////////////////////////////////////
+// Fixed type functions instantiation
+
+// Calculates the floor of a value x
+template tfixed32 mfloor(tfixed32 x);
+// Calculates the ceiling of a value x
+template tfixed32 mceil(tfixed32 x);
+// Finds fraction part of number x
+template tfixed32 mfrc(tfixed32 x);
+// Normalizing angle to [-PI,PI]
+template tfixed32 mnorma(tfixed32 rad);
+// Inverting value sign
+template tfixed32 minvert(tfixed32 x);
+// Reverse value
+template tfixed32 mreverse(tfixed32 x);
+#endif //MATH_FIXED_INST
+
+
+#ifdef MATH_FIXED64_INST
+////////////////////////////////////////////////////////////////////////////////
+// Fixed type functions instantiation
+
+// Calculates the floor of a value x
+template tfixed64 mfloor(tfixed64 x);
+// Calculates the ceiling of a value x
+template tfixed64 mceil(tfixed64 x);
+// Finds fraction part of number x
+template tfixed64 mfrc(tfixed64 x);
+// Normalizing angle to [-PI,PI]
+template tfixed64 mnorma(tfixed64 rad);
+// Inverting value sign
+template tfixed64 minvert(tfixed64 x);
+// Reverse value
+template tfixed64 mreverse(tfixed64 x);
+#endif //MATH_FIXED64_INST
+
+
+#ifdef MATH_HALF_INST
+////////////////////////////////////////////////////////////////////////////////
+// Fixed type functions instantiation
+
+// Calculates the floor of a value x
+template thalf mfloor(thalf x);
+// Calculates the ceiling of a value x
+template thalf mceil(thalf x);
+// Finds fraction part of number x
+template thalf mfrc(thalf x);
+// Normalizing angle to [-PI,PI]
+template thalf mnorma(thalf rad);
+// Inverting value sign
+template thalf minvert(thalf x);
+// Reverse value
+template thalf mreverse(thalf x);
+#endif //MATH_HALF_INST
+
+
+/*
+-- for integer types
 ////////////////////////////////////////////////////////////////////////////////
 // Check if number is a primary number
 template <typename T>
@@ -455,201 +660,26 @@ bool misprim(T n)
 
     return n%2 && n%3 && n%5 && n%7;
 }
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Functions specilization
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Template functions instantiation
-////////////////////////////////////////////////////////////////////////////////
-
-#ifdef MATH_FLOAT_INST
-////////////////////////////////////////////////////////////////////////////////
-// Float type functions instantiation
-
-////////////////////////////////////////////////////////////////////////////////
-// Pack values from [-1,1] to [0,1]
-template void mpack01(marray2<float> & out, const marray2<float> & in);
-template void mpack01(marray3<float> & out, const marray3<float> & in);
-template void mpack01(marray4<float> & out, const marray4<float> & in);
-
-////////////////////////////////////////////////////////////////////////////////
-// Unpack values from [0,1] to [-1,1]
-template void munpack01(marray2<float> & out, const marray2<float> & in);
-template void munpack01(marray3<float> & out, const marray3<float> & in);
-template void munpack01(marray4<float> & out, const marray4<float> & in);
-
+*/
+/*
 ///////////////////////////////////////////////////////////////////////////////
-// Finds fraction part of number x
-template float mfrc(float x);
-
-////////////////////////////////////////////////////////////////////////////////
-// Normalizing angle to [-PI,PI]
-template float mnorma(float rad);
-
-////////////////////////////////////////////////////////////////////////////////
-#endif //MATH_FLOAT_INST
-
-
-#ifdef MATH_DOUBLE_INST
-////////////////////////////////////////////////////////////////////////////////
-// Double type functions instantiation
-
-////////////////////////////////////////////////////////////////////////////////
-// Pack values from [-1,1] to [0,1]
-template void mpack01(marray2<double> & out, const marray2<double> & in);
-template void mpack01(marray3<double> & out, const marray3<double> & in);
-template void mpack01(marray4<double> & out, const marray4<double> & in);
-
-////////////////////////////////////////////////////////////////////////////////
-// Unpack values from [0,1] to [-1,1]
-template void munpack01(marray2<double> & out, const marray2<double> & in);
-template void munpack01(marray3<double> & out, const marray3<double> & in);
-template void munpack01(marray4<double> & out, const marray4<double> & in);
-
+// Set to zero if value is near zero (no template)
+inline float   malign0(float x)
+{
+    if((x > -FLOAT_EPS) && (x < FLOAT_EPS))
+        return 0.0f;
+    else
+        return x;
+}
 ///////////////////////////////////////////////////////////////////////////////
-// Finds fraction part of number x
-template double mfrc(double x);
-
-////////////////////////////////////////////////////////////////////////////////
-// Normalizing angle to [-PI,PI]
-template double mnorma(double rad);
-
-////////////////////////////////////////////////////////////////////////////////
-#endif //MATH_DOUBLE_INST
-
-
-#ifdef MATH_LONG_DOUBLE_INST
-////////////////////////////////////////////////////////////////////////////////
-// Long double type functions instantiation
-
-////////////////////////////////////////////////////////////////////////////////
-// Pack values from [-1,1] to [0,1]
-template void mpack01(marray2<long double> & out, const marray2<long double> & in);
-template void mpack01(marray3<long double> & out, const marray3<long double> & in);
-template void mpack01(marray4<long double> & out, const marray4<long double> & in);
-
-////////////////////////////////////////////////////////////////////////////////
-// Unpack values from [0,1] to [-1,1]
-template void munpack01(marray2<long double> & out, const marray2<long double> & in);
-template void munpack01(marray3<long double> & out, const marray3<long double> & in);
-template void munpack01(marray4<long double> & out, const marray4<long double> & in);
-
-///////////////////////////////////////////////////////////////////////////////
-// Finds fraction part of number x
-template long double mfrc(long double x);
-
-////////////////////////////////////////////////////////////////////////////////
-// Normalizing angle to [-PI,PI]
-template long double mnorma(long double rad);
-
-////////////////////////////////////////////////////////////////////////////////
-#endif //MATH_LONG_DOUBLE_INST
-
-
-#ifdef MATH_FIXED_INST
-////////////////////////////////////////////////////////////////////////////////
-// Fixed type functions instantiation
-
-////////////////////////////////////////////////////////////////////////////////
-// Pack values from [-1,1] to [0,1]
-template void mpack01(marray2<tfixed32> & out, const marray2<tfixed32> & in);
-template void mpack01(marray3<tfixed32> & out, const marray3<tfixed32> & in);
-template void mpack01(marray4<tfixed32> & out, const marray4<tfixed32> & in);
-
-////////////////////////////////////////////////////////////////////////////////
-// Unpack values from [0,1] to [-1,1]
-template void munpack01(marray2<tfixed32> & out, const marray2<tfixed32> & in);
-template void munpack01(marray3<tfixed32> & out, const marray3<tfixed32> & in);
-template void munpack01(marray4<tfixed32> & out, const marray4<tfixed32> & in);
-
-///////////////////////////////////////////////////////////////////////////////
-// Finds fraction part of number x
-template tfixed32 mfrc(tfixed32 x);
-
-////////////////////////////////////////////////////////////////////////////////
-// Normalizing angle to [-PI,PI]
-template tfixed32 mnorma(tfixed32 rad);
-
-////////////////////////////////////////////////////////////////////////////////
-#endif //MATH_FIXED_INST
-
-
-#ifdef MATH_FIXED64_INST
-////////////////////////////////////////////////////////////////////////////////
-// Fixed type functions instantiation
-
-////////////////////////////////////////////////////////////////////////////////
-// Pack values from [-1,1] to [0,1]
-template void mpack01(marray2<tfixed64> & out, const marray2<tfixed64> & in);
-template void mpack01(marray3<tfixed64> & out, const marray3<tfixed64> & in);
-template void mpack01(marray4<tfixed64> & out, const marray4<tfixed64> & in);
-
-////////////////////////////////////////////////////////////////////////////////
-// Unpack values from [0,1] to [-1,1]
-template void munpack01(marray2<tfixed64> & out, const marray2<tfixed64> & in);
-template void munpack01(marray3<tfixed64> & out, const marray3<tfixed64> & in);
-template void munpack01(marray4<tfixed64> & out, const marray4<tfixed64> & in);
-
-///////////////////////////////////////////////////////////////////////////////
-// Finds fraction part of number x
-template tfixed64 mfrc(tfixed64 x);
-
-////////////////////////////////////////////////////////////////////////////////
-// Normalizing angle to [-PI,PI]
-template tfixed64 mnorma(tfixed64 rad);
-
-////////////////////////////////////////////////////////////////////////////////
-#endif //MATH_FIXED64_INST
-
-
-#ifdef MATH_HALF_INST
-////////////////////////////////////////////////////////////////////////////////
-// Fixed type functions instantiation
-
-////////////////////////////////////////////////////////////////////////////////
-// Pack values from [-1,1] to [0,1]
-template void mpack01(marray2<thalf> & out, const marray2<thalf> & in);
-template void mpack01(marray3<thalf> & out, const marray3<thalf> & in);
-template void mpack01(marray4<thalf> & out, const marray4<thalf> & in);
-
-////////////////////////////////////////////////////////////////////////////////
-// Unpack values from [0,1] to [-1,1]
-template void munpack01(marray2<thalf> & out, const marray2<thalf> & in);
-template void munpack01(marray3<thalf> & out, const marray3<thalf> & in);
-template void munpack01(marray4<thalf> & out, const marray4<thalf> & in);
-
-///////////////////////////////////////////////////////////////////////////////
-// Finds fraction part of number x
-template thalf mfrc(thalf x);
-
-////////////////////////////////////////////////////////////////////////////////
-// Normalizing angle to [-PI,PI]
-template thalf mnorma(thalf rad);
-
-////////////////////////////////////////////////////////////////////////////////
-#endif //MATH_HALF_INST
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Check if number is a primary number
-template bool misprim<uint8t>(uint8t n);
-template bool misprim<uint16t>(uint16t n);
-template bool misprim<uint32t>(uint32t n);
-template bool misprim<uint64t>(uint64t n);
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
+inline double  malign0(double x)
+{
+    if((x > -DOUBLE_EPS) && (x < DOUBLE_EPS))
+        return 0.0;
+    else
+        return x;
+}
+*/
 /*
 ///////////////////////////////////////////////////////////////////////////////
 // Clamping value
