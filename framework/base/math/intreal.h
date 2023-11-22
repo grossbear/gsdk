@@ -9,7 +9,7 @@
 #define _INTREAL_H_
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// INTORFLOAT Union For Easy Access To Bits Of A Float.
+// INTORFLOAT Union for easy access to bits of a float.
 union INTFLOAT
 {
     int32t  i;          // As Integer
@@ -17,23 +17,36 @@ union INTFLOAT
     struct              // As Bit Fields
     {
         uint32t    sign:1;
-        uint32t    biasedexponent:8;
-        uint32t    significand;
+        uint32t    exponent:8;
+        uint32t    mantissa:23;
     }
     bits;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// INTORDOUBLE Union For Easy Access To Bits Of A Float.
+// INTORDOUBLE Union for easy access to bits of a double.
 union INTDOUBLE
 {
-    int64t 	i;          // As 64-bit Integer
-    double	d;          // As Double
+    int64t  i;          // As 64-bit Integer
+    double  d;          // As Double
     struct              // As Bit Fields
     {
         uint64t    sign:1;
-        uint64t    biasedexponent:11;
-        uint64t    significand;
+        uint64t    exponent:11;
+        uint64t    mantissa:52;
+    }
+    bits;
+};
+///////////////////////////////////////////////////////////////////////////////////////
+// INTHALF Union for easy access to bits of a half.
+union INTHALF
+{
+    uint16t h;          // as half
+    struct              // as bits field
+    {
+        uint16t    sign:1;
+        uint16t    exponent:5;
+        uint16t    mantissa:10;
     }
     bits;
 };
