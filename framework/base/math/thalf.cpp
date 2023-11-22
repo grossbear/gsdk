@@ -425,10 +425,21 @@ float m_half_to_float_amd(uint16t h_val)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+const uint32t float_values_table [] =
+{
+    #include "tables/half_float_conv_table.h"
+};
+
+///////////////////////////////////////////////////////////////////////////////
 float m_half_to_float_table(uint16t h_val)
 {
-    //0xAABBCCDD, 0xAABBCCDD, 0xAABBCCDD, 0xAABBCCDD, 0xAABBCCDD, 0xAABBCCDD,
-    return 0.0f;
+    uint32t sign = h_val & 0x8000;
+    uint32t value = h_val & 0x7FFF;
+
+    uint32t flt_val = float_values_table[value];
+    flt_val |= sign;
+
+    return flt_val;
 }
 
 
@@ -441,112 +452,7 @@ inline uint16t m_float_to_half(float f_val)
 //////////////////////////////////////////////////////////////////////////////
 inline float m_half_to_float(uint16t h_val)
 {
-    return m_half_to_float_amd(h_val);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Conversion functions
-thalf mftoh(float f_val)
-{
-    thalf out;
-    uint16t * ptr = (uint16t *) out;
-    *ptr = m_float_to_half(f_val);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-float mhtof(const thalf & h_val)
-{
-    uint16t * ptr = (uint16t *) h_val;
-
-    return m_half_to_float(*ptr);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-uint16t mftoh_raw(float f_val)
-{
-    return m_float_to_half(f_val);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-float  mhtof_raw(uint16t h_val)
-{
-    return m_half_to_float(h_val);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Making half number
-thalf mmakeh(int32t sign, int32t exp, int32t mant)
-{
-    uint16t val = (sign << 15) | ((exp & 31) << 10) | (mant & ((1 << 10) - 1));
-
-    return val;
-}
-///////////////////////////////////////////////////////////////////////////////
-// Splitting half number
-void msplith(const thalf & h, int32t & sign, int32t & exp, int32t & mant)
-{
-    sign = (h >> 15) != 0 ? 1 : 0;
-    exp =  (h >> 10) & 31;
-    mant = h & ((1 << 10) - 1);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Testing value functions
-///////////////////////////////////////////////////////////////////////////////
-// Test if not a number
-bool misnan(thalf & h)
-{
-    int32t s,e,m;
-    msplith(h,s,e,m);
-
-    return (e == 255) && (m != 0);
-}
-///////////////////////////////////////////////////////////////////////////////
-// If quiet NaN
-bool mqnan(thalf & h)
-{
-    int32t s,e,m;
-    msplith(h,s,e,m);
-
-    return (e == 255) && (m != 0) && !(m >> 9);
-}
-///////////////////////////////////////////////////////////////////////////////
-// If signaling NaN
-bool msnan(thalf & h)
-{
-    int32t s,e,m;
-    msplith(h,s,e,m);
-
-    return (e == 255) && (m != 0) && (m >> 9);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Is infinity
-bool misinf(thalf & h)
-{
-    int32t s,e,m;
-    msplith(h,s,e,m);
-
-    return (e == 31) && (m == 0);
-}
-///////////////////////////////////////////////////////////////////////////////
-// Is positive infinity
-bool mpinf(thalf & h)
-{
-    int32t s,e,m;
-    msplith(h,s,e,m);
-
-    return (s == 0) && (e == 31) && (m == 0);
-}
-///////////////////////////////////////////////////////////////////////////////
-// Is negative infinity
-bool mninf(thalf & h)
-{
-    int32t s,e,m;
-    msplith(h,s,e,m);
-
-    return (s == 1) && (e == 31) && (m == 0);
+    return m_half_to_float_table(h_val);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
