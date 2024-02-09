@@ -11,6 +11,7 @@
 #include "elementary.h"
 #include "intreal.h"
 
+static const INTFLOAT  bias = {((23 + 127) << 23) + (1 << 22)};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Square root calc functions
@@ -158,7 +159,7 @@ uint64t m_isqrt(uint64t x)
     ITER1 ( 7LL);    ITER1 ( 6LL);    ITER1 ( 5LL);    ITER1 ( 4LL);
     ITER1 ( 3LL);    ITER1 ( 2LL);    ITER1 ( 1LL);    ITER1 ( 0LL);
 
-    return rooti >> 1LL;
+    return root >> 1LL;
 #undef ITER1
 }
 
@@ -170,7 +171,7 @@ uint64t m_isqrt(uint64t x)
 
 #define     TABLESIZE_SIN       256
 #define     FIXED_TABLE_SIZE    1024
-#define     TWOPISCALE          ((float)TABLESIZE_SIN * ((float)CONST_1_2PI))
+#define     TWOPISCALE          ((float)TABLESIZE_SIN * ((float)CONST_1_BY_2PI))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Precalculated float sinus and cosinus values table
@@ -214,16 +215,16 @@ void m_tsincosf(float angle, float & sin_val, float & cos_val)
     fi.f = angle * TWOPISCALE + bias.f;
 
     int i = fi.i & (TABLESIZE_SIN - 1);
-    sin_val = sinus_tab[i].f;
+    sin_val = table_sinus[i].f;
 
     i = (fi.i + (TABLESIZE_SIN / 4)) & (TABLESIZE_SIN - 1);
-    cos_val = sinus_tab[i].f;
+    cos_val = table_sinus[i].f;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-const uint32t fxcos_tab [FIXED_TABLE_SIZE+1] =+
+const uint32t fxcos_tab [FIXED_TABLE_SIZE+1] =
 {
     #include "tables/fxcos_table1024.h"
 };
@@ -247,16 +248,16 @@ const uint32t fxacos_tab [FIXED_TABLE_SIZE+1] =
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-const ubyte acosdeg_tab [101] =+
+const uint32t acosdeg_tab [101] =
 {
     #include "tables/acosdeg_table.h"
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // 32-bit fixed point table sinus function
-tfixed32 m_tsinx(const tfixed32 &x)
+tfixed32 m_tsinx(const tfixed32 & x)
 {
-    static const tfixed32 fx2pi = CMathConst< tfixed32 >::MATH_2PI;
+    static const tfixed32 fx2pi = CMConst<tfixed32>::MATH_2PI;
 
     tfixed32 fxval = (*(int32t*)x < 0) ? (fx2pi - x) : (x);
     fxval /= fx2pi;
@@ -278,7 +279,7 @@ tfixed32 m_tsinx(const tfixed32 &x)
 // 32-bit fixed point table cosinus function
 tfixed32 m_tcosx(const tfixed32 &x)
 {
-    static const tfixed32 fx2pi = CMathConst< tfixed32 >::MATH_2PI;
+    static const tfixed32 fx2pi = CMConst<tfixed32>::MATH_2PI;
 
     tfixed32 fxval = (*(int32t*)x < 0) ? (-x) : (x);
     fxval /= fx2pi;
@@ -300,7 +301,7 @@ tfixed32 m_tcosx(const tfixed32 &x)
 // Sinus and cosinus precalculated table function
 void m_tsincosx(const tfixed32 & angle, tfixed32 & sin_val, tfixed32 & cos_val)
 {
-    static const tfixed32 fx2pi = CMathConst< tfixed32 >::MATH_2PI;
+    static const tfixed32 fx2pi = CMConst<tfixed32>::MATH_2PI;
 
     sin_val = (*(int32t*)angle < 0) ? (fx2pi - angle) : (angle);
     sin_val /= fx2pi;
@@ -333,7 +334,7 @@ int32t m_tacosdeg(float f)
 {
     int32t index = mftoi(f * 100);
     if(index > 100) index = 100;
-    ubyte degval = acosdeg_tab[index];
+    ubyte degval = (ubyte) acosdeg_tab[index];
     return (uint32t)degval;
 }
 
