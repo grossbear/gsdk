@@ -7,6 +7,7 @@
 #ifndef __ELEMANTARYFUNC_H__
 #define __ELEMANTARYFUNC_H__
 
+#include <math.h>
 #include "mtypes.h"
 
 ///////////////////////////////////////////////////////////////////////////////
